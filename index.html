@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+<meta charset="UTF-8">
+<title>Ganache Token DApp</title>
+
+<script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+
+<style>
+    body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", sans-serif;
+        background: linear-gradient(135deg, #1d2671, #c33764);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #333;
+    }
+
+    .app {
+        background: #fff;
+        width: 100%;
+        max-width: 1100px;
+        padding: 30px;
+        border-radius: 14px;
+        box-shadow: 0 20px 40px rgba(0,0,0,.25);
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    h1 {
+        grid-column: 1 / -1;
+        text-align: center;
+        margin: 0 0 10px;
+        color: #2c3e50;
+    }
+
+    .card {
+        background: #f9fafb;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 6px 14px rgba(0,0,0,.08);
+    }
+
+    .card h2 {
+        margin-top: 0;
+        font-size: 1.2rem;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 6px;
+    }
+
+    input, button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+        font-size: 1rem;
+    }
+
+    input {
+        border: 1px solid #ccc;
+        border-radius: 6px;
+    }
+
+    button {
+        background: #3498db;
+        border: none;
+        border-radius: 6px;
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #2980b9;
+    }
+
+    .value {
+        font-weight: 600;
+        color: #2c3e50;
+        word-break: break-all;
+    }
+
+    .status {
+        margin-top: 10px;
+        font-size: .95rem;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="app">
+    <h1>Ganache Token DApp</h1>
+
+    <!-- ACCOUNT -->
+    <div class="card">
+        <h2>Account</h2>
+        <p class="value" id="account">-</p>
+    </div>
+
+    <!-- TOKEN INFO -->
+    <div class="card">
+        <h2>Token info</h2>
+        <button onclick="loadTokenInfo()">Učitaj</button>
+        <p>Ime: <span class="value" id="name">-</span></p>
+        <p>Simbol: <span class="value" id="symbol">-</span></p>
+        <p>Total supply: <span class="value" id="supply">-</span></p>
+    </div>
+
+    <!-- BALANCE -->
+    <div class="card">
+        <h2>Balans</h2>
+        <button onclick="loadMyBalance()">Moj balans</button>
+        <p><span class="value" id="myBalance">-</span></p>
+
+        <input id="balanceAddr" placeholder="Provjeri adresu" />
+        <button onclick="checkBalance()">Provjeri</button>
+        <p><span class="value" id="otherBalance">-</span></p>
+    </div>
+
+    <!-- TRANSFER -->
+    <div class="card">
+        <h2>Transfer</h2>
+        <input id="to" placeholder="Primatelj (0x...)" />
+        <input id="amount" type="number" placeholder="Iznos (npr. 1000)" />
+        <button onclick="transfer()">Pošalji</button>
+        <p class="status" id="transferStatus"></p>
+    </div>
+
+    <!-- OWNER -->
+    <div class="card">
+        <h2>Owner funkcije</h2>
+
+        <input id="mintTo" placeholder="Mint adresa" />
+        <input id="mintAmount" type="number" placeholder="Iznos" />
+        <button onclick="mint()">Mint</button>
+
+        <hr>
+
+        <input id="burnAmount" type="number" placeholder="Burn iznos" />
+        <button onclick="burn()">Burn</button>
+
+        <p class="status" id="ownerStatus"></p>
+    </div>
+</div>
+
+<script>
+    const web3 = new Web3("http://127.0.0.1:7545");
+
+    const contractAddress = "0xF96E8c7e31F4111193C96C39027Ace6C46AF9F50";
+    const abi = [
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "burn",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "mint",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_initialSupply",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "Burn",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "Mint",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "transfer",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "Transfer",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "balanceOf",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "decimals",
+		"outputs": [
+			{
+				"internalType": "uint8",
+				"name": "",
+				"type": "uint8"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "name",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "symbol",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "totalSupply",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+
+    const contract = new web3.eth.Contract(abi, contractAddress);
+    let account;
+
+    async function init() {
+        const accounts = await web3.eth.getAccounts();
+        account = accounts[0];
+        document.getElementById("account").innerText = account;
+    }
+
+    async function loadTokenInfo() {
+        name.innerText = await contract.methods.name().call();
+        symbol.innerText = await contract.methods.symbol().call();
+        supply.innerText = await contract.methods.totalSupply().call();
+    }
+
+    async function loadMyBalance() {
+        myBalance.innerText =
+            await contract.methods.balanceOf(account).call();
+    }
+
+    async function checkBalance() {
+        const addr = balanceAddr.value;
+        if (!web3.utils.isAddress(addr)) {
+            alert("Neispravna adresa");
+            return;
+        }
+        otherBalance.innerText =
+            await contract.methods.balanceOf(addr).call();
+    }
+
+    async function transfer() {
+        transferStatus.innerText = "Slanje...";
+        await contract.methods.transfer(
+            to.value,
+            amount.value
+        ).send({ from: account });
+        transferStatus.innerText = "Transfer uspješan";
+        loadMyBalance();
+    }
+
+    async function mint() {
+        await contract.methods.mint(
+            mintTo.value,
+            mintAmount.value
+        ).send({ from: account });
+        ownerStatus.innerText = "Mint uspješan";
+    }
+
+    async function burn() {
+        await contract.methods.burn(
+            burnAmount.value
+        ).send({ from: account });
+        ownerStatus.innerText = "Burn uspješan";
+    }
+
+    init();
+</script>
+
+</body>
+</html>
