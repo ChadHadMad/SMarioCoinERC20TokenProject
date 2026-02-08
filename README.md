@@ -1,4 +1,8 @@
 # SMarioCoin Token DApp
+**Autor :** *Mario Sebastian Miklošević*  
+**Fakultet informatike i digitalnih tehnologija**  
+**Kolegij :** *Informacijska sigurnost i blockchain tehnologije*  
+**GitHub :** [here](https://github.com/ChadHadMad/SMarioCoinERC20TokenProject)
 
 ## 1. Uvod
 
