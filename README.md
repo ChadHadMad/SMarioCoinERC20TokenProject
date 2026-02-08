@@ -204,7 +204,7 @@ async function burn() {
 init();
 ```
 
-![HTML](https://raw.githubusercontent.com/ChadHadMad/Images/refs/heads/main/Screenshot%202026-02-08%20194413.png)
+<img src="https://raw.githubusercontent.com/ChadHadMad/Images/refs/heads/main/Screenshot%202026-02-08%20194413.png" width="600">
 
 ## 5. Testiranje
 
@@ -219,7 +219,7 @@ Testiranje je provedeno na lokalnoj blockchain mreži Ganache putem sljedećih k
    - Mintanje i burnanje tokena od strane vlasnika ugovora.
 4. Verifikacija događaja (events) u Ganache sučelju radi potvrde ispravnog rada funkcija.  
 
-![Ganash](https://raw.githubusercontent.com/ChadHadMad/Images/refs/heads/main/Screenshot%202026-02-07%20231818.png)
+<img src=https://raw.githubusercontent.com/ChadHadMad/Images/refs/heads/main/Screenshot%202026-02-07%20231818.png width="600">
 
 ---
 
