@@ -203,6 +203,9 @@ async function burn() {
 
 init();
 ```
+
+![HTML](https://raw.githubusercontent.com/ChadHadMad/Images/refs/heads/main/Screenshot%202026-02-08%20194413.png)
+
 ## 5. Testiranje
 
 Testiranje je provedeno na lokalnoj blockchain mreži Ganache putem sljedećih koraka:
@@ -214,7 +217,9 @@ Testiranje je provedeno na lokalnoj blockchain mreži Ganache putem sljedećih k
    - Provjera balansa vlastitog i drugih računa prije i nakon transakcija.
    - Prijenos tokena između računa.
    - Mintanje i burnanje tokena od strane vlasnika ugovora.
-4. Verifikacija događaja (events) u Ganache sučelju radi potvrde ispravnog rada funkcija.
+4. Verifikacija događaja (events) u Ganache sučelju radi potvrde ispravnog rada funkcija.  
+
+![Ganash](https://raw.githubusercontent.com/ChadHadMad/Images/refs/heads/main/Screenshot%202026-02-07%20231818.png)
 
 ---
 
